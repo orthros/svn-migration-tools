@@ -43,5 +43,5 @@ pushd \\machineName\c$
 ::Call C: to change back to the script's directory
 C:
 ::Execute the script
-svnautoupgrade -f  C:\pathToFile.txt
+svnautoupgrade -f  Z:\pathToFile.txt
 ```
