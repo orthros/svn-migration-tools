@@ -24,10 +24,14 @@ def main(argv):
     #Setup global variables
     fromLocation = ''
     toLocation = ''
+    includedDirectories = set()
 
-    argumentString = "svnautohotcopy.py -f fromLocation -t toLocation -u upgradeNeededLog -n nonSvnDirLog"
+    #Setup a temporary variable
+    includedDirectoriesFile = ''
+
+    argumentString = "svnautohotcopy.py -f fromLocation -t toLocation -d directoriesFile -u upgradeNeededLog -n nonSvnDirLog"
     try:
-        opts, args = getopt.getopt(argv,"hf:t:u:n:v",["flocation=","tlocation=","ulog=","nlog=","verbose="])
+        opts, args = getopt.getopt(argv,"hf:t:d:u:n:v",["flocation=","tlocation=","dFiles=","ulog=","nlog=","verbose="])
     except getopt.GetoptError:
         print(argumentString)
         sys.exit(2)
@@ -50,6 +54,9 @@ def main(argv):
             nonSvnDirLog = open(arg, "w+")
         elif opt in ('-v', '--verbose'):
             isVerbose = arg.lower() == "true"
+        elif opt in ('-d', '--directoriesFile'):
+            includedDirectoriesFile = arg
+
 
     if not os.path.exists(fromLocation):
         print("The repository location is not found.")
@@ -58,6 +65,19 @@ def main(argv):
     if not os.path.exists(toLocation):
         print("The to location doesn't exist.")
         sys.exit()
+
+    #Parse our include file
+    if includedDirectoriesFile:
+        if not os.path.exists(includedDirectoriesFile):
+            print("The include file does not exist")
+            sys.exit()
+        with open(includedDirectoriesFile, "r") as ins:
+            for line in ins:
+                includedDirectories.add(line)
+    else:
+        for tempDir in os.listdir(fromLocation):
+            includedDirectories.add(tempDir)
+    #Now if
 
     #Setup the regex to determine if it is fsfs or not
     regex = re.compile('^fsfs$', re.MULTILINE)
@@ -68,6 +88,10 @@ def main(argv):
         print("\nWorking on subdir {}".format(subdir))
         loc = os.path.join(fromLocation, subdir)
         log("Our location is {}".format(loc))
+
+        if subdir not in includedDirectories:
+            print("\nSkipping subdir {} as it is not in our included directories".format(subdir))
+            continue
 
         svnType = ""
         fsfsExists = False
