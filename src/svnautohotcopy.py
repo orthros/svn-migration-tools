@@ -73,11 +73,13 @@ def main(argv):
             sys.exit()
         with open(includedDirectoriesFile, "r") as ins:
             for line in ins:
-                includedDirectories.add(line)
+                includedDirectories.add(line.strip())
     else:
         for tempDir in os.listdir(fromLocation):
             includedDirectories.add(tempDir)
     #Now if
+
+    log(includedDirectories)
 
     #Setup the regex to determine if it is fsfs or not
     regex = re.compile('^fsfs$', re.MULTILINE)
@@ -102,8 +104,12 @@ def main(argv):
                 if f == "fs-type":
                     fsFile = open(os.path.join(subdir2, f), 'r+')
                     svnType = fsFile.readline()
+                    break
                 elif f == 'fsfs.conf':
                     fsfsExists = True
+                    break
+            if (fsfsExists) or (svnType):
+                break
 
         if (svnType) and (svnType != ""):
             log("This is a svn repository")
